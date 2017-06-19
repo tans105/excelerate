@@ -7,6 +7,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
+import com.tanmay.excelerate.dao.AppDao;
+
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @Component
@@ -21,6 +23,8 @@ public class ExcelerateApplication {
 	}
 
 	public void init() {
+		AppDao dao=new AppDao();
+		System.out.println(dao.executeSQlQueryReturnAsListOfMaps("select id from app_3w_lead limit 10"));
 		System.out.println("inside init method");
 	}
 }
