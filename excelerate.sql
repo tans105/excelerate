@@ -17,6 +17,7 @@ create sequence report_failure_archive_seq;
 
 create table report_failure_archive(
 id bigint DEFAULT nextval('report_failure_archive_seq'::regclass),
+report_id bigint,
 failure_remarks text,
 failure_dtm timestamp without time zone,
 primary key (id)

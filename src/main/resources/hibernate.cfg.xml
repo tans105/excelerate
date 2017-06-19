@@ -13,6 +13,6 @@
 
 
 		<mapping class="com.tanmay.excelerate.entity.ReportManager"></mapping>
-		<!-- <mapping class="com.grit.excelerate.entity.ReportFailureArchive"></mapping> -->
+		<mapping class="com.tanmay.excelerate.entity.ReportFailureArchive"></mapping>
 	</session-factory>
 </hibernate-configuration>

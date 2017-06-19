@@ -41,19 +41,25 @@ public class AppService {
 			 * create and write csv
 			 */
 			if (eligibleForGeneration(report)) {
-				File f = new File(report.getDownloadLocation());
-				if (!f.exists()) {
-					if (f.mkdir())
-						System.out.println("DIRECTORY CREATED");
-					else {
-						//log to failure
-						continue;
-					}
-				}
+				if (!checkDirectoryPresence(report))
+					continue;
 			} else {
 				continue;
 			}
 		}
+	}
+
+	private boolean checkDirectoryPresence(ReportManager report) {
+		File f = new File(report.getDownloadLocation());
+		if (!f.exists()) {
+			if (!f.mkdir())
+				System.out.println("DIRECTORY CREATED");
+			else {
+				dao.logFailure(report.getReportId(), "Error creating Directory :" + report.getDownloadLocation());
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private boolean eligibleForGeneration(ReportManager report) {

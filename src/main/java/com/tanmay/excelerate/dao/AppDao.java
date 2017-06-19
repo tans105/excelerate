@@ -1,6 +1,6 @@
 package com.tanmay.excelerate.dao;
 
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +11,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
-import com.tanmay.excelerate.entity.ReportManager;
+import com.tanmay.excelerate.entity.ReportFailureArchive;
 import com.tanmay.excelerate.utils.DbUtil;
 import com.tanmay.excelerate.utils.HibernateUtils;
 
@@ -20,7 +20,7 @@ import com.tanmay.excelerate.utils.HibernateUtils;
  * @created : 19-Jun-2017
  */
 public class AppDao {
-	
+
 	public <T> T getEntityByProperty(Map<String, Object> property, Class<T> clazz) {
 		Session session = null;
 		Transaction tx = null;
@@ -49,7 +49,7 @@ public class AppDao {
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<Map<String, Object>> executeSQlQueryReturnAsListOfMaps(String sqlQuery) {
 
@@ -97,7 +97,7 @@ public class AppDao {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public List fetchAllReport() {
 		Session session = null;
 		Transaction tx = null;
@@ -105,7 +105,7 @@ public class AppDao {
 		try {
 			session = HibernateUtils.getSessionFactory().openSession();
 			tx = session.beginTransaction();
-			reports=session.createQuery("from ReportManager as reports where reports.active='true'").list();
+			reports = session.createQuery("from ReportManager as reports where reports.active='true'").list();
 			tx.commit();
 			tx = null;
 		} catch (Exception e) {
@@ -116,6 +116,33 @@ public class AppDao {
 			DbUtil.rollBackTransaction(tx);
 		}
 		return reports;
+	}
+
+	public void logFailure(Long reportId, String errorMsg) {
+		ReportFailureArchive archive = new ReportFailureArchive();
+		archive.setReportId(reportId);
+		archive.setFailureRemarks(errorMsg);
+		archive.setFailureDtm(new Date());
+		Session session = null;
+		Transaction tx = null;
+		try {
+			session = HibernateUtils.getSessionFactory().openSession();
+			tx = session.beginTransaction();
+			session.save(archive);
+			tx.commit();
+			tx = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+			{
+				if (tx != null) {
+					tx.rollback();
+					tx = null;
+				}
+				DbUtil.closeSession(session);
+			}
+		}
 	}
 
 }
