@@ -7,7 +7,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-import com.tanmay.excelerate.dao.AppDao;
+import com.tanmay.excelerate.service.AppService;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
@@ -19,12 +19,12 @@ public class ExcelerateApplication {
 		ConfigurableApplicationContext ctx = SpringApplication.run(ExcelerateApplication.class);
 		ExcelerateApplication mainObj = ctx.getBean(ExcelerateApplication.class);
 		mainObj.init();
-		System.out.println("Application exited");
+		System.out.println("<-----------------------Report Generation Completes------------------------------>");
 	}
 
 	public void init() {
-		AppDao dao=new AppDao();
-		System.out.println(dao.executeSQlQueryReturnAsListOfMaps("select id from app_3w_lead limit 10"));
-		System.out.println("inside init method");
+		System.out.println("<----------------------Report Generation Begins----------------------------------->");
+		AppService service=new AppService();
+		service.generateReport();
 	}
 }

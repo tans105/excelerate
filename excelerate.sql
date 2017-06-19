@@ -4,7 +4,7 @@ create table report_manager(
 report_id bigint DEFAULT nextval('report_manager_seq'::regclass),
 query text,
 fileName character varying(30),
-duration character varying(10),
+type character varying(10),
 download_location text,
 last_generated_on timestamp without time zone,
 is_failing boolean,
