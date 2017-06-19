@@ -1,0 +1,31 @@
+{
+	"3m": 
+	[
+		{
+			"id": 1,
+			"query": "select * from app_enq",
+			"fileName": "3MLeads",
+			"duration": "daily"
+		}
+	],
+
+	"directLogin": 
+	[
+		{
+			"id": 1,
+			"query": "select * from app_lead",
+			"fileName": "DirectLogin",
+			"duration": "daily"
+		}
+	],
+
+	"3w": 
+	[
+		{
+			"id": 1,
+			"query": "select * from app_3w_enq",
+			"fileName": "3WLeads",
+			"duration": "daily"
+		}
+	]
+}
