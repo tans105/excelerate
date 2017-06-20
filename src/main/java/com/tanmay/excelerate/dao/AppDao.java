@@ -1,5 +1,8 @@
 package com.tanmay.excelerate.dao;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +13,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.jdbc.Work;
 
 import com.tanmay.excelerate.entity.ReportFailureArchive;
 import com.tanmay.excelerate.utils.DbUtil;
@@ -144,5 +148,32 @@ public class AppDao {
 			}
 		}
 	}
+
+	public String[] getColumnNames(String tableName) {
+		SessionFactory sf = HibernateUtils.getSessionFactory();
+		Session session = sf.openSession();
+
+		ArrayList<String> columnNames = new ArrayList<String>();
+		try {
+			session.doWork(new Work() {
+				public void execute(Connection connection) throws SQLException {
+					java.sql.DatabaseMetaData dbmd;
+					dbmd = connection.getMetaData();
+					java.sql.ResultSet columns = dbmd.getColumns(null, null, tableName, "%");
+					while (columns.next()) {
+						columnNames.add(columns.getString("COLUMN_NAME"));
+					}
+				}
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeSession(session);
+		}
+
+		return columnNames.toArray(new String[0]);
+	}
+
 
 }
