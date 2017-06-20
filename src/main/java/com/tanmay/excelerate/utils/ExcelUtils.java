@@ -2,6 +2,9 @@ package com.tanmay.excelerate.utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +38,10 @@ public class ExcelUtils {
 
 	@SuppressWarnings("unused")
 	public static void createWorkbook(ReportManager report, AppDao dao) {
-		List<Map<String, Object>> list = dao.executeSQlQueryReturnAsListOfMaps(report.getReportId(), report.getQuery());
+		List<Map<String, Object>> list = dao.executeSQlQueryReturnAsListOfMaps(report, report.getQuery());
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet sheet = workbook.createSheet();
-
+ 
 		HSSFCellStyle style = styleWorkbookCells(workbook);
 		Object[] columnHeaders = null;
 		if (list.size() > 0) {
@@ -82,12 +85,22 @@ public class ExcelUtils {
 
 		FileOutputStream fos = null;
 		try {
-			fos = new FileOutputStream(new File("ExcelSheet.xls"));
+			fos = new FileOutputStream(getReportDestination(report));
 			workbook.write(fos);
-			System.out.println("<-------------------------------------------FILE CREATED----------------------------->");
+			report.setLastGeneratedOn(new Date());
+			report.setIsFailing(Boolean.FALSE);
+			dao.saveOrUpdateEntity(report);
 		} catch (Exception e) {
 			e.printStackTrace();
+			dao.logFailure(report, e.toString());
 		}
+	}
+
+	private static File getReportDestination(ReportManager report) {
+		final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		Timestamp timestamp=new Timestamp(System.currentTimeMillis());
+		File destination=new File(report.getDownloadLocation()+"/"+report.getFilename()+"_"+sdf.format(timestamp)+".xls");
+		return destination;
 	}
 
 	private static Object[] findAndFormatHeaders(Map<String, Object> map) {

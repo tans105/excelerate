@@ -53,7 +53,7 @@ public class AppService {
 			if (f.mkdir())
 				System.out.println("DIRECTORY CREATED");
 			else {
-				dao.logFailure(report.getReportId(), "Error creating Directory :" + report.getDownloadLocation());
+				dao.logFailure(report, "Error creating Directory :" + report.getDownloadLocation());
 				return false;
 			}
 		}

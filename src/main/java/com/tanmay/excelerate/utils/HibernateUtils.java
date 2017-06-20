@@ -15,6 +15,7 @@ public class HibernateUtils {
 
 	private static final SessionFactory sessionFactory = buildSessionFactory();
 
+	@SuppressWarnings("static-access")
 	private static SessionFactory buildSessionFactory() {
 		Properties dbConnectionProperties = new Properties();
 		
