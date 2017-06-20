@@ -174,6 +174,32 @@ public class AppDao {
 
 		return columnNames.toArray(new String[0]);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Object[]> executeQueryReturnAsListOfObject(Long reportId, String qry){
+		Session session = null;
+		Transaction tx = null;
+		List<Object[]> list = null;
+
+		try {
+			session = HibernateUtils.getSessionFactory().openSession();
+			tx = session.beginTransaction();
+			Query query = session.createSQLQuery(qry.toString());
+			list = query.list();
+
+			tx.commit();
+			tx = null;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logFailure(reportId, "Query Failed to execute");
+		} finally {
+			DbUtil.closeSession(session);
+			DbUtil.rollBackTransaction(tx);
+		}
+		return list;
+
+	}
 
 
 }

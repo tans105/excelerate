@@ -3,14 +3,13 @@ package com.tanmay.excelerate.service;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
+import com.tanmay.excelerate.utils.ExcelUtils;
 
 /**
  * @author : tanmay
@@ -56,8 +55,7 @@ public class AppService {
 			if (columnHeaders == null) {
 				continue;
 			}
-			printArray(columnHeaders);
-			//ExcelUtils.createWorkbook(report);
+			ExcelUtils.createWorkbook(report,columnHeaders,dao);
 		}
 	}
 
