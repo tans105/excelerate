@@ -2,7 +2,9 @@ package com.tanmay.excelerate.utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -31,12 +33,17 @@ public class ExcelUtils {
 		return style;
 	}
 
-	public static void createWorkbook(ReportManager report, String[] columnHeaders, AppDao dao) {
-		List<Object[]> list = dao.executeQueryReturnAsListOfObject(report.getReportId(), report.getQuery());
+	@SuppressWarnings("unused")
+	public static void createWorkbook(ReportManager report, AppDao dao) {
+		List<Map<String, Object>> list = dao.executeSQlQueryReturnAsListOfMaps(report.getReportId(), report.getQuery());
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet sheet = workbook.createSheet();
 
 		HSSFCellStyle style = styleWorkbookCells(workbook);
+		Object[] columnHeaders = null;
+		if (list.size() > 0) {
+			columnHeaders = findAndFormatHeaders(list.get(0));
+		}
 
 		/*----------------------------Adding column Title-----------------------------------*/
 
@@ -46,7 +53,7 @@ public class ExcelUtils {
 
 		for (int i = 0; i < columnHeaders.length; i++) {
 			cellTitle[i] = rowTitle.createCell(i);
-			cellTitle[i].setCellValue(columnHeaders[i]);
+			cellTitle[i].setCellValue(columnHeaders[i].toString().replaceAll("_", " ").toUpperCase());
 			cellTitle[i].setCellStyle(style);
 		}
 		/*---------------------------------------------------------------*/
@@ -54,17 +61,15 @@ public class ExcelUtils {
 		HSSFRow emptyRow = sheet.createRow(row);
 		row++;
 
-		for (Object[] obj : list) {
+		for (Map<String, Object> map : list) {
 			HSSFRow rowValue = sheet.createRow(row);
-			for (int i = 0; i < obj.length; i++) {
-				HSSFCell[] cell = new HSSFCell[obj.length];
-
+			for (int i = 0; i < columnHeaders.length; i++) {
+				HSSFCell[] cell = new HSSFCell[columnHeaders.length];
 				cell[i] = rowValue.createCell(i);
-				if (null != obj[i]) {
-					cell[i].setCellValue(obj[i].toString());
+				if (null != map.get(columnHeaders[i])) {
+					cell[i].setCellValue(map.get(columnHeaders[i]).toString());
 				} else
 					cell[i].setCellValue(" ");
-
 			}
 			row++;
 		}
@@ -78,14 +83,19 @@ public class ExcelUtils {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(new File("ExcelSheet.xls"));
-			HSSFCellStyle hsfstyle = workbook.createCellStyle();
-			hsfstyle.setBorderBottom((short) 1);
-			hsfstyle.setFillBackgroundColor((short) 245);
 			workbook.write(fos);
 			System.out.println("<-------------------------------------------FILE CREATED----------------------------->");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static Object[] findAndFormatHeaders(Map<String, Object> map) {
+		LinkedList<String> columnHeaderList = new LinkedList<String>();
+		for (String key : map.keySet()) {
+			columnHeaderList.add(key);
+		}
+		return columnHeaderList.toArray();
 	}
 
 }

@@ -176,30 +176,33 @@ public class AppDao {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<Object[]> executeQueryReturnAsListOfObject(Long reportId, String qry){
+	public List<Map<String, Object>> executeSQlQueryReturnAsListOfMaps(Long reportId,String sqlQuery) {
+
 		Session session = null;
 		Transaction tx = null;
-		List<Object[]> list = null;
-
+		List<Map<String, Object>> list = null;
 		try {
-			session = HibernateUtils.getSessionFactory().openSession();
+			SessionFactory sf = HibernateUtils.getSessionFactory(); // Create session factory which is defined in hibernate.cfg.xml
+			session = sf.openSession();
 			tx = session.beginTransaction();
-			Query query = session.createSQLQuery(qry.toString());
-			list = query.list();
 
+			Query query = session.createSQLQuery(sqlQuery);
+			query.setResultTransformer(Criteria.ALIAS_TO_ENTITY_MAP);
+
+			list = (List<Map<String, Object>>) query.list();
 			tx.commit();
 			tx = null;
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logFailure(reportId, "Query Failed to execute");
+			logFailure(reportId, "Failed to execute Query");
 		} finally {
 			DbUtil.closeSession(session);
 			DbUtil.rollBackTransaction(tx);
 		}
 		return list;
-
 	}
+
 
 
 }

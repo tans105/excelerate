@@ -1,11 +1,9 @@
 package com.tanmay.excelerate.service;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.ArrayUtils;
 
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
@@ -23,7 +21,6 @@ public class AppService {
 	private static final String DAILY = "d";
 	private static final String WEEKLY = "w";
 	private static final String MONTHLY = "m";
-	private static final String ASTERISK = "*";
 
 	public AppService() {
 		dao = new AppDao();
@@ -33,29 +30,13 @@ public class AppService {
 	public void generateReport() {
 		List<ReportManager> allReports = dao.fetchAllReport();
 		for (ReportManager report : allReports) {
-			/*
-			 * Check the difference between current time and last generation time
-			 * #d -> generate when diff>24 hours and type is d
-			 * #w -> generate when diff>168 hours and type is w
-			 * #m -> generate when diff> 744 hours and type is m
-			 * 
-			 * check if directory exists
-			 * #if not exists-> create
-			 * #if exists do nothing
-			 * 
-			 * create and write csv
-			 */
 			if (eligibleForGeneration(report)) {
 				if (!checkDirectoryPresence(report))
 					continue;
 			} else {
 				continue;
 			}
-			String[] columnHeaders = extractHeadersFromQuery(report);
-			if (columnHeaders == null) {
-				continue;
-			}
-			ExcelUtils.createWorkbook(report,columnHeaders,dao);
+			ExcelUtils.createWorkbook(report,dao);
 		}
 	}
 
@@ -64,76 +45,6 @@ public class AppService {
 		for (int i = 0; i < columnHeaders.length; i++) {
 			System.out.println(columnHeaders[i]);
 		}
-	}
-
-	private String[] extractHeadersFromQuery(ReportManager report) {
-		String query = report.getQuery();
-		String betweenSelectAndFrom = query.substring(6, query.lastIndexOf("from")).trim();
-		String betweenFromAndWhere = "";
-		if (query.lastIndexOf("where") == -1) {
-			betweenFromAndWhere = query.substring(query.lastIndexOf("from") + 4).trim();
-		} else {
-			betweenFromAndWhere = query.substring(query.lastIndexOf("from") + 4, query.lastIndexOf("where")).trim();
-		}
-		String[] headers = betweenSelectAndFrom.split(",");
-		headers = manageAsterisk(report.getReportId(), headers, betweenSelectAndFrom, betweenFromAndWhere);
-		if (headers == null) {
-			return null;
-		}
-		for (int i = 0; i < headers.length; i++) {
-			if (headers[i].contains(" as ") || headers[i].contains(" "))
-				headers[i] = headers[i].substring(headers[i].lastIndexOf(" ")).trim();
-			headers[i] = formatColumn(headers[i]);
-		}
-		return headers;
-	}
-
-	private String formatColumn(String column) {
-		return column.replaceAll("_", " ").toUpperCase();
-	}
-
-	private String[] manageAsterisk(Long reportId, String[] headers, String betweenSelectAndFrom, String betweenFromAndWhere) {
-		if (betweenSelectAndFrom.contains("*")) {
-			if (headers[0].equals(ASTERISK)) {
-				if (betweenFromAndWhere.indexOf(" ") == -1 && betweenFromAndWhere.indexOf(" as ") == -1) {
-					headers = dao.getColumnNames(betweenFromAndWhere.trim());
-				} else if (betweenFromAndWhere.indexOf(" ") > -1) {
-					headers = dao.getColumnNames(betweenFromAndWhere.substring(0, betweenFromAndWhere.indexOf(" ")).trim());
-				} else
-					headers = dao.getColumnNames(betweenFromAndWhere.substring(0, betweenFromAndWhere.indexOf(" as ")).trim());
-			} else {
-				String[] headersList = getTableHeadersForComplexQuery(reportId, headers, betweenFromAndWhere);
-				headers=headersList;
-			}
-		}
-		return headers;
-	}
-
-	private String[] getTableHeadersForComplexQuery(Long reportId, String[] headers, String betweenFromAndWhere) {
-		String[] elements = betweenFromAndWhere.split(" ");
-		List<String> elementsList = Arrays.asList(elements);
-		String[] tempHeaders = null;
-		for (int i = 0; i < headers.length; i++) {
-			if (headers[i].contains("*")) {
-				String alias = headers[i].substring(0, headers[i].lastIndexOf("*") - 1);
-				String tableName = "";
-				if (elementsList.contains(alias)) {
-					int index = elementsList.indexOf(alias);
-					if (elementsList.get(index - 1).equals("as"))
-						tableName = elementsList.get(index - 2);
-					else
-						tableName = elementsList.get(index - 1);
-				} else {
-					dao.logFailure(reportId, "Syntax error in query");
-					return null;
-				}
-				tempHeaders=(String[]) ArrayUtils.addAll(tempHeaders, dao.getColumnNames(tableName));
-				
-			} else {
-				tempHeaders=(String[]) ArrayUtils.add(tempHeaders, headers[i]);
-			}
-		}
-		return tempHeaders;
 	}
 
 	private boolean checkDirectoryPresence(ReportManager report) {
