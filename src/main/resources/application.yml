@@ -1,0 +1,12 @@
+logging:
+  level:
+    org.springframework: ERROR
+    com.tanmay.excelerate: DEBUG
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: ERROR
+    org.hibernate: ERROR
+    com.mchange.v2.c3p0: ERROR
+    com.mchange.v2.c3p0.impl: ERROR
+    com.mchange: ERROR
+    org.directwebremoting.util.CommonsLoggingOutput: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%-5level] %F:%L => %msg%n"

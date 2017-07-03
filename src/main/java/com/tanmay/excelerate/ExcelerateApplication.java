@@ -1,5 +1,7 @@
 package com.tanmay.excelerate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -14,16 +16,16 @@ import com.tanmay.excelerate.service.AppService;
 @Component
 @ComponentScan
 public class ExcelerateApplication {
-
+	private static Logger logger = LoggerFactory.getLogger(ExcelerateApplication.class);
 	public static void main(String[] args) {
 		ConfigurableApplicationContext ctx = SpringApplication.run(ExcelerateApplication.class);
 		ExcelerateApplication mainObj = ctx.getBean(ExcelerateApplication.class);
 		mainObj.init();
-		System.out.println("<-----------------------Report Generation Completes------------------------------>");
+		logger.debug("<-----------------------Report Generation Completes------------------------------>");
 	}
 
 	public void init() {
-		System.out.println("<----------------------Report Generation Begins----------------------------------->");
+		logger.debug("<----------------------Report Generation Begins----------------------------------->");
 		AppService service=new AppService();
 		service.generateReport();
 	}

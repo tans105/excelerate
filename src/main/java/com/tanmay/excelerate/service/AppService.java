@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
@@ -14,6 +16,7 @@ import com.tanmay.excelerate.utils.ExcelUtils;
  * @created : 19-Jun-2017
  */
 public class AppService {
+	private static Logger logger = LoggerFactory.getLogger(AppService.class);
 	AppDao dao;
 	private static final long D_HOURS = 24l;
 	private static final long W_HOURS = 168l;
@@ -51,8 +54,9 @@ public class AppService {
 		File f = new File(report.getDownloadLocation());
 		if (!f.exists()) {
 			if (f.mkdir())
-				System.out.println("DIRECTORY CREATED");
+				logger.debug("DIRECTORY CREATED");
 			else {
+				logger.debug("Error creating Directory");
 				dao.logFailure(report, "Error creating Directory :" + report.getDownloadLocation());
 				return false;
 			}
