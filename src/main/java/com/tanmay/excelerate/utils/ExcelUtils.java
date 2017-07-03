@@ -9,13 +9,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
@@ -26,12 +27,12 @@ import com.tanmay.excelerate.entity.ReportManager;
  */
 public class ExcelUtils {
 
-	public static HSSFCellStyle styleWorkbookCells(HSSFWorkbook workbook) {
-		HSSFCellStyle style = workbook.createCellStyle();
-		style.setFillForegroundColor(HSSFColor.OLIVE_GREEN.index);
-		HSSFFont font = workbook.createFont();
-		font.setColor(HSSFColor.RED.index);
-		font.setBoldweight((short) 5);
+	public static CellStyle styleWorkbookCells(Workbook workbook) {
+		CellStyle style = workbook.createCellStyle();
+		Font font = workbook.createFont();
+		font.setFontHeightInPoints((short) 10);
+		font.setColor(IndexedColors.RED.getIndex());
+		font.setBoldweight(Font.BOLDWEIGHT_BOLD);
 		style.setFont(font);
 		return style;
 	}
@@ -39,10 +40,11 @@ public class ExcelUtils {
 	@SuppressWarnings("unused")
 	public static void createWorkbook(ReportManager report, AppDao dao) {
 		List<Map<String, Object>> list = dao.executeSQlQueryReturnAsListOfMaps(report, report.getQuery());
-		HSSFWorkbook workbook = new HSSFWorkbook();
-		HSSFSheet sheet = workbook.createSheet();
- 
-		HSSFCellStyle style = styleWorkbookCells(workbook);
+		Workbook workbook = new XSSFWorkbook();
+
+		Sheet sheet = workbook.createSheet();
+
+		CellStyle style = styleWorkbookCells(workbook);
 		Object[] columnHeaders = null;
 		if (list.size() > 0) {
 			columnHeaders = findAndFormatHeaders(list.get(0));
@@ -51,8 +53,8 @@ public class ExcelUtils {
 		/*----------------------------Adding column Title-----------------------------------*/
 
 		int row = 0;
-		HSSFRow rowTitle = sheet.createRow(row);
-		HSSFCell[] cellTitle = new HSSFCell[columnHeaders.length];
+		Row rowTitle = sheet.createRow(row);
+		Cell[] cellTitle = new Cell[columnHeaders.length];
 
 		for (int i = 0; i < columnHeaders.length; i++) {
 			cellTitle[i] = rowTitle.createCell(i);
@@ -61,13 +63,13 @@ public class ExcelUtils {
 		}
 		/*---------------------------------------------------------------*/
 		row++;
-		HSSFRow emptyRow = sheet.createRow(row);
+		Row emptyRow = sheet.createRow(row);
 		row++;
 
 		for (Map<String, Object> map : list) {
-			HSSFRow rowValue = sheet.createRow(row);
+			Row rowValue = sheet.createRow(row);
 			for (int i = 0; i < columnHeaders.length; i++) {
-				HSSFCell[] cell = new HSSFCell[columnHeaders.length];
+				Cell[] cell = new Cell[columnHeaders.length];
 				cell[i] = rowValue.createCell(i);
 				if (null != map.get(columnHeaders[i])) {
 					cell[i].setCellValue(map.get(columnHeaders[i]).toString());
@@ -81,7 +83,7 @@ public class ExcelUtils {
 		for (int i = 0; i < columnHeaders.length; i++) {
 			sheet.autoSizeColumn(i);
 		}
-		/*---------------------------------------------------------------*/
+		/*---------------------------------------------------------------*/ 
 
 		FileOutputStream fos = null;
 		try {
@@ -98,8 +100,8 @@ public class ExcelUtils {
 
 	private static File getReportDestination(ReportManager report) {
 		final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		Timestamp timestamp=new Timestamp(System.currentTimeMillis());
-		File destination=new File(report.getDownloadLocation()+"/"+report.getFilename()+"_"+sdf.format(timestamp)+".xls");
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		File destination = new File(report.getDownloadLocation() + "/" + report.getFilename() + "_" + sdf.format(timestamp) + ".xls");
 		return destination;
 	}
 
