@@ -6,33 +6,40 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.stereotype.Service;
 
-import com.tanmay.excelerate.dao.AppDao;
+import com.tanmay.excelerate.dao.IBootAppDao;
 import com.tanmay.excelerate.entity.ReportManager;
 import com.tanmay.excelerate.utils.ExcelUtils;
 
 /**
  * @author : tanmay
- * @created : 19-Jun-2017
+ * @created : 03-Jul-2017
  */
-public class AppService {
-	private static Logger logger = LoggerFactory.getLogger(AppService.class);
-	AppDao dao;
+@Service
+@Configurable
+public class BootAppService implements IBootAppService {
+	private static Logger logger = LoggerFactory.getLogger(BootAppService.class);
 	private static final long D_HOURS = 24l;
 	private static final long W_HOURS = 168l;
 	private static final long M_HOURS = 744l;
 	private static final String DAILY = "d";
 	private static final String WEEKLY = "w";
 	private static final String MONTHLY = "m";
-
-	public AppService() {
-		dao = new AppDao();
-	}
 	
+	@Autowired(required = true)
+	private IBootAppDao dao;
 
-	@SuppressWarnings("unchecked")
-	public void generateReport() {
-		List<ReportManager> allReports = dao.fetchAllReport();
+	@Override
+	public List<ReportManager> fetchAllReport() {
+		return dao.fetchAllReport();
+	}
+
+	@Override
+	public void generate() {
+		List<ReportManager> allReports=fetchAllReport();
 		for (ReportManager report : allReports) {
 			if (eligibleForGeneration(report)) {
 				if (!checkDirectoryPresence(report))
@@ -40,17 +47,10 @@ public class AppService {
 			} else {
 				continue;
 			}
-			ExcelUtils.createWorkbook(report,dao);
+//			ExcelUtils.createWorkbook(report,dao);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	private void printArray(String[] columnHeaders) {
-		for (int i = 0; i < columnHeaders.length; i++) {
-			System.out.println(columnHeaders[i]);
-		}
-	}
-
+	
 	private boolean checkDirectoryPresence(ReportManager report) {
 		File f = new File(report.getDownloadLocation());
 		if (!f.exists()) {
@@ -64,7 +64,7 @@ public class AppService {
 		}
 		return true;
 	}
-
+	
 	private boolean eligibleForGeneration(ReportManager report) {
 		Boolean isEligible = Boolean.FALSE;
 		if (null == report.getLastGeneratedOn())
