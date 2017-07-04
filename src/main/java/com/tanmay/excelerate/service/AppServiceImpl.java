@@ -2,6 +2,8 @@ package com.tanmay.excelerate.service;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -24,15 +26,14 @@ import com.tanmay.excelerate.utils.ExcelUtils;
 public class AppServiceImpl implements AppService {
 	private static Logger logger = LoggerFactory.getLogger(AppServiceImpl.class);
 	private static final long D_HOURS = 24l;
-	private static final long W_HOURS = 168l;
-	private static final long M_HOURS = 744l;
 	private static final String DAILY = "d";
 	private static final String WEEKLY = "w";
 	private static final String MONTHLY = "m";
-	
+	private static final String MULTI_WEEKLY = "mw";
+
 	@Autowired(required = true)
 	private AppDao dao;
-	
+
 	@Autowired
 	private ExcelUtils excel;
 
@@ -43,20 +44,20 @@ public class AppServiceImpl implements AppService {
 
 	@Override
 	public void generate() throws SQLException {
-		List<ReportManager> allReports=fetchAllReport();
+		List<ReportManager> allReports = fetchAllReport();
 		for (ReportManager report : allReports) {
-			if (eligibleForGeneration(report)) {
-				logger.debug("Elgibile :"+report.getFilename());
+			if (isReportEligible(report)) {
+				logger.debug("Elgibile :" + report.getFilename());
 				if (!checkDirectoryPresence(report))
 					continue;
 			} else {
-				logger.debug("Not Eligible :"+report.getFilename());
+				logger.debug("Not Eligible :" + report.getFilename());
 				continue;
 			}
-			excel.createWorkbook(report,dao);
+			//			excel.createWorkbook(report, dao);
 		}
 	}
-	
+
 	private boolean checkDirectoryPresence(ReportManager report) {
 		File f = new File(report.getDownloadLocation());
 		if (!f.exists()) {
@@ -70,21 +71,66 @@ public class AppServiceImpl implements AppService {
 		}
 		return true;
 	}
-	
-	private boolean eligibleForGeneration(ReportManager report) {
-		Boolean isEligible = Boolean.FALSE;
-		if (null == report.getLastGeneratedOn())
-			return true;
-		long diffHours = (new Date().getTime() - report.getLastGeneratedOn().getTime()) / (60 * 60 * 1000);
-		if (report.getType().equals(DAILY) && diffHours >= D_HOURS) {
-			isEligible = true;
+
+	private boolean isReportEligible(ReportManager report) {
+		//Daily Reports
+		if (report.getType().equals(DAILY)) {
+			if (null == report.getLastGeneratedOn()) {
+				return true;
+			}
+			long diffHours = (new Date().getTime() - report.getLastGeneratedOn().getTime()) / (60 * 60 * 1000);
+			if (diffHours >= D_HOURS - 1)
+				return true;
 		}
-		if (report.getType().equals(WEEKLY) && diffHours >= W_HOURS) {
-			isEligible = true;
+
+		//Custom Daily Reports
+		if (report.getType().equals(MULTI_WEEKLY)) {
+			List<String> values = Arrays.asList(report.getValue().split("[\\s,]+"));
+			for (String strValue : values) {
+				Integer value = Integer.parseInt(strValue);
+				if (value < 1 && value > 7) {
+					dao.logFailure(report, "One of the value is invalid for multi weekly report");
+					return false;
+				}
+			}
+			for (String strValue : values) {
+				Integer value = Integer.parseInt(strValue);
+				Calendar c = Calendar.getInstance();
+				c.setTime(new Date());
+				int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+				if (dayOfWeek == value)
+					return true;
+			}
 		}
-		if (report.getType().equals(MONTHLY) && diffHours >= M_HOURS) {
-			isEligible = true;
+
+		//Weekly Reports
+		if (report.getType().equals(WEEKLY)) {
+			Integer value = Integer.parseInt(report.getValue());
+			if (value < 1 && value > 7) {
+				dao.logFailure(report, "Invalid Value for weekly report");
+				return false;
+			}
+			Calendar c = Calendar.getInstance();
+			c.setTime(new Date());
+			int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+			return dayOfWeek == value ? true : false;
 		}
-		return isEligible;
+
+		//Monthly Reports
+		if (report.getType().equals(MONTHLY)) {
+			Integer value = Integer.parseInt(report.getValue());
+			if (value < 1 && value > 31) {
+				dao.logFailure(report, "Invalid Value for monthly report");
+				return false;
+			}
+			Calendar c = Calendar.getInstance();
+			c.setTime(new Date());
+			int dayOfMonth = c.get(Calendar.DAY_OF_MONTH);
+			if (c.getActualMaximum(Calendar.DAY_OF_MONTH) < value && dayOfMonth == c.getActualMaximum(Calendar.DAY_OF_MONTH)) {
+				return true;
+			}
+			return dayOfMonth == value ? true : false;
+		}
+		return false;
 	}
 }

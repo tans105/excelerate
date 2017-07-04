@@ -33,6 +33,9 @@ public class ReportManager implements java.io.Serializable {
 	@Column(name = "type")
 	private String type;
 
+	@Column(name = "value")
+	private String value;
+
 	@Column(name = "download_location")
 	private String downloadLocation;
 
@@ -78,6 +81,14 @@ public class ReportManager implements java.io.Serializable {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 	public String getDownloadLocation() {

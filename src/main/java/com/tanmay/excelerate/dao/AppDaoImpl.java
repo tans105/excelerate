@@ -1,6 +1,5 @@
 package com.tanmay.excelerate.dao;
 
-
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -35,7 +34,7 @@ public class AppDaoImpl implements AppDao {
 
 	@Autowired
 	JdbcTemplate jdb;
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<ReportManager> fetchAllReport() {
@@ -65,19 +64,19 @@ public class AppDaoImpl implements AppDao {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Object[] getColumnNames(String query) {
-		List columns = new ArrayList();
-	    jdb.query(query,new ResultSetExtractor() {
-	 
-	        @Override
-	        public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
-	            ResultSetMetaData rsmd = rs.getMetaData();
-	            int columnCount = rsmd.getColumnCount();
-	            for(int i = 1 ; i <= columnCount ; i++){
-	                columns.add(rsmd.getColumnName(i));
-	            }
-	            return columnCount;
-	        }
-	    });
+		final List columns = new ArrayList();
+		jdb.query(query, new ResultSetExtractor() {
+
+			@Override
+			public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
+				ResultSetMetaData rsmd = rs.getMetaData();
+				int columnCount = rsmd.getColumnCount();
+				for (int i = 1; i <= columnCount; i++) {
+					columns.add(rsmd.getColumnName(i));
+				}
+				return columnCount;
+			}
+		});
 		return columns.toArray();
 	}
 
