@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-import com.tanmay.excelerate.service.BootAppService;
+import com.tanmay.excelerate.service.AppServiceImpl;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
@@ -24,10 +24,12 @@ public class ExcelerateApplication implements CommandLineRunner {
 	}
 
 	@Autowired
-	private BootAppService appService;
+	private AppServiceImpl appService;
 
 	@Override
 	public void run(String... arg0) throws Exception {
+		logger.debug("<-----------------------------------------------Initiating report Generation------------------------------------------------->");
 		appService.generate();
+		logger.debug("<-----------------------------------------------Report Generation Completes-------------------------------------------------->");
 	}
 }

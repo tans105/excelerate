@@ -1,5 +1,6 @@
 package com.tanmay.excelerate.dao;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -8,6 +9,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tanmay.excelerate.entity.ReportFailureArchive;
 import com.tanmay.excelerate.entity.ReportManager;
 
 /**
@@ -17,7 +19,7 @@ import com.tanmay.excelerate.entity.ReportManager;
 
 @Transactional
 @Repository
-public class BootAppDao implements IBootAppDao {
+public class AppDaoImpl implements AppDao {
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -29,11 +31,22 @@ public class BootAppDao implements IBootAppDao {
 	}
 
 	@Override
-	public void logFailure(ReportManager report, String string) {
-		
+	public void logFailure(ReportManager report, String errorMsg) {
+		report.setIsFailing(Boolean.TRUE);
+		report.setLastFailureDtm(new Date());
+		entityManager.merge(report);
+		ReportFailureArchive archive = new ReportFailureArchive();
+		archive.setReportId(report.getReportId());
+		archive.setFailureRemarks(errorMsg);
+		archive.setFailureDtm(new Date());
+		entityManager.persist(archive);
+
 	}
 
-	
-	
-	
+	@Override
+	public void saveOrUpdateEntity(ReportManager report) {
+		entityManager.merge(report);
+
+	}
+
 }

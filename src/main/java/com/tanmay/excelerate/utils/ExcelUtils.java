@@ -17,6 +17,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
@@ -25,7 +28,10 @@ import com.tanmay.excelerate.entity.ReportManager;
  * @author : tanmay
  * @created : 19-Jun-2017
  */
+@Component
 public class ExcelUtils {
+	@Autowired
+	JdbcTemplate jdb;
 
 	public static CellStyle styleWorkbookCells(Workbook workbook) {
 		CellStyle style = workbook.createCellStyle();
@@ -38,8 +44,8 @@ public class ExcelUtils {
 	}
 
 	@SuppressWarnings("unused")
-	public static void createWorkbook(ReportManager report, AppDao dao) {
-		List<Map<String, Object>> list = dao.executeSQlQueryReturnAsListOfMaps(report, report.getQuery());
+	public void createWorkbook(ReportManager report, AppDao dao) {
+		List<Map<String, Object>> list = jdb.queryForList(report.getQuery());
 		Workbook workbook = new XSSFWorkbook();
 
 		Sheet sheet = workbook.createSheet();
@@ -83,7 +89,7 @@ public class ExcelUtils {
 		for (int i = 0; i < columnHeaders.length; i++) {
 			sheet.autoSizeColumn(i);
 		}
-		/*---------------------------------------------------------------*/ 
+		/*---------------------------------------------------------------*/
 
 		FileOutputStream fos = null;
 		try {

@@ -1,6 +1,7 @@
 package com.tanmay.excelerate.service;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Service;
 
-import com.tanmay.excelerate.dao.IBootAppDao;
+import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
 import com.tanmay.excelerate.utils.ExcelUtils;
 
@@ -20,8 +21,8 @@ import com.tanmay.excelerate.utils.ExcelUtils;
  */
 @Service
 @Configurable
-public class BootAppService implements IBootAppService {
-	private static Logger logger = LoggerFactory.getLogger(BootAppService.class);
+public class AppServiceImpl implements AppService {
+	private static Logger logger = LoggerFactory.getLogger(AppServiceImpl.class);
 	private static final long D_HOURS = 24l;
 	private static final long W_HOURS = 168l;
 	private static final long M_HOURS = 744l;
@@ -30,7 +31,10 @@ public class BootAppService implements IBootAppService {
 	private static final String MONTHLY = "m";
 	
 	@Autowired(required = true)
-	private IBootAppDao dao;
+	private AppDao dao;
+	
+	@Autowired
+	private ExcelUtils excel;
 
 	@Override
 	public List<ReportManager> fetchAllReport() {
@@ -38,7 +42,7 @@ public class BootAppService implements IBootAppService {
 	}
 
 	@Override
-	public void generate() {
+	public void generate() throws SQLException {
 		List<ReportManager> allReports=fetchAllReport();
 		for (ReportManager report : allReports) {
 			if (eligibleForGeneration(report)) {
@@ -47,7 +51,7 @@ public class BootAppService implements IBootAppService {
 			} else {
 				continue;
 			}
-//			ExcelUtils.createWorkbook(report,dao);
+			excel.createWorkbook(report,dao);
 		}
 	}
 	
