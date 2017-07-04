@@ -17,8 +17,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.tanmay.excelerate.dao.AppDao;
@@ -30,8 +28,6 @@ import com.tanmay.excelerate.entity.ReportManager;
  */
 @Component
 public class ExcelUtils {
-	@Autowired
-	JdbcTemplate jdb;
 
 	public static CellStyle styleWorkbookCells(Workbook workbook) {
 		CellStyle style = workbook.createCellStyle();
@@ -43,54 +39,78 @@ public class ExcelUtils {
 		return style;
 	}
 
-	@SuppressWarnings("unused")
 	public void createWorkbook(ReportManager report, AppDao dao) {
-		List<Map<String, Object>> list = jdb.queryForList(report.getQuery());
-		Workbook workbook = new XSSFWorkbook();
-
-		Sheet sheet = workbook.createSheet();
-
-		CellStyle style = styleWorkbookCells(workbook);
-		Object[] columnHeaders = null;
+		List<Map<String, Object>> list = dao.extractQueryResult(report.getQuery());
 		if (list.size() > 0) {
+			Workbook workbook = new XSSFWorkbook();
+
+			Sheet sheet = workbook.createSheet();
+
+			CellStyle style = styleWorkbookCells(workbook);
+			Object[] columnHeaders = null;
 			columnHeaders = findAndFormatHeaders(list.get(0));
-		}
 
-		/*----------------------------Adding column Title-----------------------------------*/
+			/*----------------------------Adding column Title-----------------------------------*/
 
-		int row = 0;
-		Row rowTitle = sheet.createRow(row);
-		Cell[] cellTitle = new Cell[columnHeaders.length];
+			int row = 0;
+			Row rowTitle = sheet.createRow(row);
+			Cell[] cellTitle = new Cell[columnHeaders.length];
 
-		for (int i = 0; i < columnHeaders.length; i++) {
-			cellTitle[i] = rowTitle.createCell(i);
-			cellTitle[i].setCellValue(columnHeaders[i].toString().replaceAll("_", " ").toUpperCase());
-			cellTitle[i].setCellStyle(style);
-		}
-		/*---------------------------------------------------------------*/
-		row++;
-		Row emptyRow = sheet.createRow(row);
-		row++;
-
-		for (Map<String, Object> map : list) {
-			Row rowValue = sheet.createRow(row);
 			for (int i = 0; i < columnHeaders.length; i++) {
-				Cell[] cell = new Cell[columnHeaders.length];
-				cell[i] = rowValue.createCell(i);
-				if (null != map.get(columnHeaders[i])) {
-					cell[i].setCellValue(map.get(columnHeaders[i]).toString());
-				} else
-					cell[i].setCellValue(" ");
+				cellTitle[i] = rowTitle.createCell(i);
+				cellTitle[i].setCellValue(columnHeaders[i].toString().replaceAll("_", " ").toUpperCase());
+				cellTitle[i].setCellStyle(style);
 			}
+			/*---------------------------------------------------------------*/
 			row++;
-		}
 
-		/*---------------------Sizing the column width------------------------*/
-		for (int i = 0; i < columnHeaders.length; i++) {
-			sheet.autoSizeColumn(i);
-		}
-		/*---------------------------------------------------------------*/
+			for (Map<String, Object> map : list) {
+				Row rowValue = sheet.createRow(row);
+				for (int i = 0; i < columnHeaders.length; i++) {
+					Cell[] cell = new Cell[columnHeaders.length];
+					cell[i] = rowValue.createCell(i);
+					if (null != map.get(columnHeaders[i])) {
+						cell[i].setCellValue(map.get(columnHeaders[i]).toString());
+					} else
+						cell[i].setCellValue(" ");
+				}
+				row++;
+			}
 
+			/*---------------------Sizing the column width------------------------*/
+			for (int i = 0; i < columnHeaders.length; i++) {
+				sheet.autoSizeColumn(i);
+			}
+			/*---------------------------------------------------------------*/
+
+			write(workbook, report, dao);
+
+		} else {//list size check
+			Workbook workbook = new XSSFWorkbook();
+
+			Sheet sheet = workbook.createSheet();
+
+			CellStyle style = styleWorkbookCells(workbook);
+			Object[] columnHeaders = null;
+			columnHeaders = dao.getColumnNames(report.getQuery());
+
+			/*----------------------------Adding column Title-----------------------------------*/
+
+			int row = 0;
+			Row rowTitle = sheet.createRow(row);
+			Cell[] cellTitle = new Cell[columnHeaders.length];
+
+			for (int i = 0; i < columnHeaders.length; i++) {
+				cellTitle[i] = rowTitle.createCell(i);
+				cellTitle[i].setCellValue(columnHeaders[i].toString().replaceAll("_", " ").toUpperCase());
+				cellTitle[i].setCellStyle(style);
+			}
+			write(workbook, report, dao);
+			dao.logFailure(report, "Query returned 0 records");
+		}
+	}
+
+	private void write(Workbook workbook, ReportManager report, AppDao dao) {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(getReportDestination(report));
@@ -102,16 +122,17 @@ public class ExcelUtils {
 			e.printStackTrace();
 			dao.logFailure(report, e.toString());
 		}
+
 	}
 
-	private static File getReportDestination(ReportManager report) {
+	private File getReportDestination(ReportManager report) {
 		final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		File destination = new File(report.getDownloadLocation() + "/" + report.getFilename() + "_" + sdf.format(timestamp) + ".xls");
 		return destination;
 	}
 
-	private static Object[] findAndFormatHeaders(Map<String, Object> map) {
+	private Object[] findAndFormatHeaders(Map<String, Object> map) {
 		LinkedList<String> columnHeaderList = new LinkedList<String>();
 		for (String key : map.keySet()) {
 			columnHeaderList.add(key);

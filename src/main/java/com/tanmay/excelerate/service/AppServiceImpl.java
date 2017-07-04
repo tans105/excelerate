@@ -46,9 +46,11 @@ public class AppServiceImpl implements AppService {
 		List<ReportManager> allReports=fetchAllReport();
 		for (ReportManager report : allReports) {
 			if (eligibleForGeneration(report)) {
+				logger.debug("Elgibile :"+report.getFilename());
 				if (!checkDirectoryPresence(report))
 					continue;
 			} else {
+				logger.debug("Not Eligible :"+report.getFilename());
 				continue;
 			}
 			excel.createWorkbook(report,dao);

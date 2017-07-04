@@ -1,6 +1,7 @@
 package com.tanmay.excelerate.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import com.tanmay.excelerate.entity.ReportManager;
 
@@ -15,5 +16,9 @@ public interface AppDao {
 	void logFailure(ReportManager report, String string);
 
 	void saveOrUpdateEntity(ReportManager report);
+	
+	Object[] getColumnNames(String query);
+	
+	List<Map<String,Object>> extractQueryResult(String query);
 
 }
