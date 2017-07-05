@@ -29,3 +29,7 @@ insert into report_manager values (2,'select * from app_3w_lead','Report 2','m',
 insert into report_manager values (1,'select * from app_3w_lead','Report 1','w','4','/home/tanmay/Excelerate',null,false,null,true);
 insert into report_manager values (4,'select * from app_3w_lead','Report 4','w','3','/home/tanmay/Excelerate',null,false,null,true);
 insert into report_manager values (5,'select * from app_3w_lead','Report 5','mw','3,2','/home/tanmay/Excelerate',null,false,null,true);
+
+insert into report_manager values (1,'select * from app_3w_lead','3W_Report','mw','4,5','/var/www/gmcms/ReportUtil',null,false,null,true);
+insert into report_manager values (2,'select * from app_lead','DirectLogin_Report','w','4','/var/www/gmcms/ReportUtil',null,false,null,true);
+insert into report_manager values (3,'select * from app_enq','3M_Report','d','','/var/www/gmcms/ReportUtil',null,false,null,true);

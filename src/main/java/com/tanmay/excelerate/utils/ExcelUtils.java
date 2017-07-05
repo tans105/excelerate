@@ -9,14 +9,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import com.tanmay.excelerate.dao.AppDao;
@@ -29,6 +29,7 @@ import com.tanmay.excelerate.entity.ReportManager;
 @Component
 public class ExcelUtils {
 
+	@SuppressWarnings("deprecation")
 	public static CellStyle styleWorkbookCells(Workbook workbook) {
 		CellStyle style = workbook.createCellStyle();
 		Font font = workbook.createFont();
@@ -42,19 +43,19 @@ public class ExcelUtils {
 	public void createWorkbook(ReportManager report, AppDao dao) {
 		List<Map<String, Object>> list = dao.extractQueryResult(report.getQuery());
 		if (list.size() > 0) {
-			Workbook workbook = new XSSFWorkbook();
+			SXSSFWorkbook workbook = new SXSSFWorkbook();
 
-			Sheet sheet = workbook.createSheet();
+			SXSSFSheet sheet = workbook.createSheet();
 
 			CellStyle style = styleWorkbookCells(workbook);
 			Object[] columnHeaders = null;
-			columnHeaders = findAndFormatHeaders(list.get(0));
+			columnHeaders = fetchHeaders(list.get(0));
 
 			/*----------------------------Adding column Title-----------------------------------*/
 
 			int row = 0;
-			Row rowTitle = sheet.createRow(row);
-			Cell[] cellTitle = new Cell[columnHeaders.length];
+			SXSSFRow rowTitle = sheet.createRow(row);
+			SXSSFCell[] cellTitle = new SXSSFCell[columnHeaders.length];
 
 			for (int i = 0; i < columnHeaders.length; i++) {
 				cellTitle[i] = rowTitle.createCell(i);
@@ -65,9 +66,9 @@ public class ExcelUtils {
 			row++;
 
 			for (Map<String, Object> map : list) {
-				Row rowValue = sheet.createRow(row);
+				SXSSFRow rowValue = sheet.createRow(row);
 				for (int i = 0; i < columnHeaders.length; i++) {
-					Cell[] cell = new Cell[columnHeaders.length];
+					SXSSFCell[] cell = new SXSSFCell[columnHeaders.length];
 					cell[i] = rowValue.createCell(i);
 					if (null != map.get(columnHeaders[i])) {
 						cell[i].setCellValue(map.get(columnHeaders[i]).toString());
@@ -77,18 +78,18 @@ public class ExcelUtils {
 				row++;
 			}
 
-			/*---------------------Sizing the column width------------------------*/
-			for (int i = 0; i < columnHeaders.length; i++) {
-				sheet.autoSizeColumn(i);
-			}
-			/*---------------------------------------------------------------*/
+			//			/*---------------------Sizing the column width------------------------*/
+			//			for (int i = 0; i < columnHeaders.length; i++) {
+			//				sheet.autoSizeColumn(i);
+			//			}
+			//			/*---------------------------------------------------------------*/
 
 			write(workbook, report, dao);
 
 		} else {//list size check
-			Workbook workbook = new XSSFWorkbook();
+			SXSSFWorkbook workbook = new SXSSFWorkbook();
 
-			Sheet sheet = workbook.createSheet();
+			SXSSFSheet sheet = workbook.createSheet();
 
 			CellStyle style = styleWorkbookCells(workbook);
 			Object[] columnHeaders = null;
@@ -97,8 +98,8 @@ public class ExcelUtils {
 			/*----------------------------Adding column Title-----------------------------------*/
 
 			int row = 0;
-			Row rowTitle = sheet.createRow(row);
-			Cell[] cellTitle = new Cell[columnHeaders.length];
+			SXSSFRow rowTitle = sheet.createRow(row);
+			SXSSFCell[] cellTitle = new SXSSFCell[columnHeaders.length];
 
 			for (int i = 0; i < columnHeaders.length; i++) {
 				cellTitle[i] = rowTitle.createCell(i);
@@ -132,7 +133,7 @@ public class ExcelUtils {
 		return destination;
 	}
 
-	private Object[] findAndFormatHeaders(Map<String, Object> map) {
+	private Object[] fetchHeaders(Map<String, Object> map) {
 		LinkedList<String> columnHeaderList = new LinkedList<String>();
 		for (String key : map.keySet()) {
 			columnHeaderList.add(key);

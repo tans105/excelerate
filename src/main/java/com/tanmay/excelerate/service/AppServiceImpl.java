@@ -54,7 +54,7 @@ public class AppServiceImpl implements AppService {
 				logger.debug("Not Eligible :" + report.getFilename());
 				continue;
 			}
-			//			excel.createWorkbook(report, dao);
+			excel.createWorkbook(report, dao);
 		}
 	}
 
