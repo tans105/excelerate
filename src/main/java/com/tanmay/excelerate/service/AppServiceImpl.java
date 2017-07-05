@@ -25,7 +25,6 @@ import com.tanmay.excelerate.utils.ExcelUtils;
 @Configurable
 public class AppServiceImpl implements AppService {
 	private static Logger logger = LoggerFactory.getLogger(AppServiceImpl.class);
-	private static final long D_HOURS = 24l;
 	private static final String DAILY = "d";
 	private static final String WEEKLY = "w";
 	private static final String MONTHLY = "m";
@@ -77,10 +76,14 @@ public class AppServiceImpl implements AppService {
 		if (report.getType().equals(DAILY)) {
 			if (null == report.getLastGeneratedOn()) {
 				return true;
+			} else {
+				Calendar c = Calendar.getInstance();
+				c.setTime(report.getLastGeneratedOn());
+				int lastReportGeneratedDay = c.get(Calendar.DAY_OF_WEEK);
+				c.setTime(new Date());
+				int presentDay = c.get(Calendar.DAY_OF_WEEK);
+				return lastReportGeneratedDay != presentDay ? true : false;
 			}
-			long diffHours = (new Date().getTime() - report.getLastGeneratedOn().getTime()) / (60 * 60 * 1000);
-			if (diffHours >= D_HOURS - 1)
-				return true;
 		}
 
 		//Custom Daily Reports
