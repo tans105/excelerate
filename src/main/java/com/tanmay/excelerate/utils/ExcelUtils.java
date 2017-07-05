@@ -19,6 +19,7 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
 
+import com.tanmay.excelerate.constants.Constants;
 import com.tanmay.excelerate.dao.AppDao;
 import com.tanmay.excelerate.entity.ReportManager;
 
@@ -129,7 +130,13 @@ public class ExcelUtils {
 	private File getReportDestination(ReportManager report) {
 		final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-		File destination = new File(report.getDownloadLocation() + "/" + report.getFilename() + "_" + sdf.format(timestamp) + ".xls");
+		String downloadLocation = report.getDownloadLocation();
+		File destination = null;
+		if (downloadLocation.charAt(downloadLocation.length() - 1) == '/') {
+			destination = new File(report.getDownloadLocation() + report.getFilename() + "_" + Constants.REPORT_TYPE_NAME_MAPPING.get(report.getType()) + "_" + sdf.format(timestamp) + ".xls");
+		} else {
+			destination = new File(report.getDownloadLocation() + "/" + report.getFilename() + "_" + Constants.REPORT_TYPE_NAME_MAPPING.get(report.getType()) + "_" + sdf.format(timestamp) + ".xls");
+		}
 		return destination;
 	}
 
