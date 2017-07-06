@@ -19,6 +19,6 @@ public interface AppDao {
 	
 	Object[] getColumnNames(String query);
 	
-	List<Map<String,Object>> extractQueryResult(String query);
+	List<Map<String,Object>> extractQueryResult(ReportManager report);
 
 }
