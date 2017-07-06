@@ -46,7 +46,7 @@ public class AppDaoImpl implements AppDao {
 	public void logFailure(ReportManager report, String errorMsg) {
 		report.setIsFailing(Boolean.TRUE);
 		report.setLastFailureDtm(new Date());
-		entityManager.merge(report);
+		saveOrUpdateEntity(report);
 		ReportFailureArchive archive = new ReportFailureArchive();
 		archive.setReportId(report.getReportId());
 		archive.setFailureRemarks(errorMsg);
@@ -81,8 +81,14 @@ public class AppDaoImpl implements AppDao {
 	}
 
 	@Override
-	public List<Map<String, Object>> extractQueryResult(String query) {
-		return jdb.queryForList(query);
+	public List<Map<String, Object>> extractQueryResult(ReportManager report) {
+		try {
+			return jdb.queryForList(report.getQuery());
+		} catch (Exception e) {
+			logFailure(report, "Query failing to execute");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

@@ -42,7 +42,10 @@ public class ExcelUtils {
 	}
 
 	public void createWorkbook(ReportManager report, AppDao dao) {
-		List<Map<String, Object>> list = dao.extractQueryResult(report.getQuery());
+		List<Map<String, Object>> list = dao.extractQueryResult(report);
+		if (null == list) {
+			return;
+		}
 		if (list.size() > 0) {
 			SXSSFWorkbook workbook = new SXSSFWorkbook();
 
