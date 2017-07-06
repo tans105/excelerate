@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,8 +42,15 @@ public class ExcelUtils {
 		return style;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void createWorkbook(ReportManager report, AppDao dao) {
-		List<Map<String, Object>> list = dao.extractQueryResult(report);
+		List<Map<String, Object>> list=new ArrayList();
+		try {
+			list = dao.extractQueryResult(report);
+		} catch (Exception e) {
+			dao.logFailure(report, "Query Failing to execute, Exception :"+e.toString());
+			return;
+		}
 		if (null == list) {
 			return;
 		}

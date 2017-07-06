@@ -85,7 +85,7 @@ public class AppDaoImpl implements AppDao {
 		try {
 			return jdb.queryForList(report.getQuery());
 		} catch (Exception e) {
-			logFailure(report, "Query failing to execute");
+			logFailure(report, "Query Failing to execute, Exception :"+e.toString());
 			e.printStackTrace();
 			return null;
 		}
